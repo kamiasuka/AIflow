@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiflow.backend.dao.ScriptDao">
+    <resultMap id="scriptResultMap" type="com.aiflow.backend.model.Script">
+        <id property="id" column="id" />
+        <result property="storyInfo" column="story_info" />
+        <result property="storyScript" column="story_script" />
+        <result property="characterDesign" column="character_design" />
+        <result property="shotScript" column="shot_script" />
+        <result property="prompt" column="prompt" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <insert id="save" parameterType="com.aiflow.backend.model.Script" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO script (
+            story_info,
+            story_script,
+            character_design,
+            shot_script,
+            prompt,
+            create_time,
+            update_time
+        ) VALUES (
+            #{storyInfo},
+            #{storyScript},
+            #{characterDesign},
+            #{shotScript},
+            #{prompt},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <select id="getById" parameterType="java.lang.Long" resultMap="scriptResultMap">
+        SELECT * FROM script WHERE id = #{id}
+    </select>
+
+    <update id="update" parameterType="com.aiflow.backend.model.Script">
+        UPDATE script SET
+            story_info = #{storyInfo},
+            story_script = #{storyScript},
+            character_design = #{characterDesign},
+            shot_script = #{shotScript},
+            prompt = #{prompt},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.Long">
+        DELETE FROM script WHERE id = #{id}
+    </delete>
+</mapper>
