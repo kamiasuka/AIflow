@@ -14,17 +14,32 @@ public class ScriptServiceImpl implements ScriptService {
 
     @Autowired
     private ScriptDao scriptDao;
+    @Autowired
+    private  CommonService commonService;
 
     @Override
     public Map<String, Object> generateScript(String storyInfo, String premise, String apiType) {
-        // 模拟API调用，实际项目中需要调用真实的AI API
-        Map<String, Object> result = new HashMap<>();
-        result.put("storyScript", "这是生成的故事剧本...");
-        result.put("characterDesign", "这是人物设计...");
-        result.put("shotScript", "这是分镜脚本...");
-        result.put("prompt", "这是Prompt提示词...");
-        return result;
+        // 根据API类型选择不同的AI服务
+        try {
+            if ("doubao".equals(apiType)) {
+                // 调用豆包API
+                return commonService.callDoubaoAPI(storyInfo, premise);
+            } else if ("deepseek".equals(apiType)) {
+                // 调用DeepSeek API
+                return commonService.callDeepSeekAPI(storyInfo, premise);
+            } else {
+                // 默认使用豆包API
+                return commonService.callDoubaoAPI(storyInfo, premise);
+            }
+        } catch (Exception e) {
+            // 处理异常，返回错误信息
+            Map<String, Object> result = new HashMap<>();
+            result.put("error", "生成剧本时发生错误: " + e.getMessage());
+            throw new RuntimeException("生成剧本失败", e);
+        }
     }
+    
+
 
     @Override
     public Script saveScript(Script script) {

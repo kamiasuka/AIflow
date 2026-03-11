@@ -25,10 +25,17 @@ public class ScriptController {
      */
     @PostMapping("/generate")
     public Map<String, Object> generateScript(@RequestBody Map<String, Object> request) {
-        String storyInfo = (String) request.get("storyInfo");
-        String premise = (String) request.get("premise");
-        String apiType = (String) request.get("apiType");
-        return scriptService.generateScript(storyInfo, premise, apiType);
+        try {
+            String storyInfo = (String) request.get("storyInfo");
+            String premise = (String) request.get("premise");
+            String apiType = (String) request.get("apiType");
+            return scriptService.generateScript(storyInfo, premise, apiType);
+        } catch (Exception e) {
+            // 处理异常，返回错误信息
+            Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("error", "生成剧本失败: " + e.getMessage());
+            return errorResponse;
+        }
     }
 
     /**
