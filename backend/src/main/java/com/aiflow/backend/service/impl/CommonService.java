@@ -21,7 +21,7 @@ public class CommonService {
     private static final String DOUBAO_MODEL = "ep-20240310155935-fh465";
     
     private static final String DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
-    private static final String DEEPSEEK_API_KEY = "sk-3028076110c64e49904d7acba142dafc";
+    private static final String DEEPSEEK_API_KEY = "";
     private static final String DEEPSEEK_MODEL = "deepseek-chat";
     
     @Autowired
