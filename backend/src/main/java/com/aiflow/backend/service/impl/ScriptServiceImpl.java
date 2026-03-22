@@ -3,11 +3,14 @@ package com.aiflow.backend.service.impl;
 import com.aiflow.backend.common.exception.ServiceException;
 import com.aiflow.backend.common.response.StatusCode;
 import com.aiflow.backend.dao.ScriptDao;
+import com.aiflow.backend.model.ModelConfig;
 import com.aiflow.backend.model.Script;
+import com.aiflow.backend.service.ModelConfigService;
 import com.aiflow.backend.service.ScriptService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -15,6 +18,8 @@ public class ScriptServiceImpl implements ScriptService {
 
     @Autowired
     private ScriptDao scriptDao;
+    @Autowired
+    private ModelConfigService modelConfigService;
     @Autowired
     private CommonService commonService;
 
@@ -30,20 +35,17 @@ public class ScriptServiceImpl implements ScriptService {
             throw new ServiceException(StatusCode.VALIDATED_ERROR, "API类型不能为空");
         }
 
-        String normalizedApiType = apiType.trim().toLowerCase();
-        try {
-            if ("doubao".equals(normalizedApiType)) {
-                return commonService.callDoubaoAPI(storyInfo, premise);
-            } else if ("deepseek".equals(normalizedApiType)) {
-                return commonService.callDeepSeekAPI(storyInfo, premise);
-            } else {
-                throw new ServiceException(StatusCode.VALIDATED_ERROR, "不支持的API类型: " + apiType.trim());
-            }
-        } catch (ServiceException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ServiceException(StatusCode.OPERATION_FAILED, "生成剧本失败: " + e.getMessage());
+        List<ModelConfig> configs = modelConfigService.getConfigsByName(apiType.trim());
+        if (configs == null || configs.isEmpty()) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "未找到[" + apiType + "]模型的配置信息，请先在设置中添加");
         }
+
+        ModelConfig config = configs.get(0);
+        if (config.getIsEnabled() != 1) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "[" + apiType + "]模型已禁用，请启用后重试");
+        }
+
+        return commonService.callAIAPI(storyInfo, premise, config);
     }
 
     @Override

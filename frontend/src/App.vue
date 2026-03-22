@@ -22,17 +22,32 @@
     <el-footer height="40px" class="footer">
       <p>© 2026 AIflow. All rights reserved.</p>
     </el-footer>
+
+    <!-- 大模型配置弹窗 -->
+    <model-config-dialog @config-updated="handleConfigUpdated" />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import ScriptGenerator from './components/ScriptGenerator.vue'
 import Text2ImageGenerator from './components/Text2ImageGenerator.vue'
 import Image2VideoGenerator from './components/Image2VideoGenerator.vue'
 import MaterialOrganizer from './components/MaterialOrganizer.vue'
+import ModelConfigDialog from './components/ModelConfigDialog.vue'
 
 const activeTab = ref('script')
+
+// 用于触发模型配置刷新的key
+const modelConfigKey = ref(0)
+
+// 当模型配置更新时，递增key来触发ScriptGenerator刷新
+const handleConfigUpdated = () => {
+  modelConfigKey.value++
+}
+
+// 提供给子组件使用
+provide('modelConfigKey', modelConfigKey)
 </script>
 
 <style scoped>

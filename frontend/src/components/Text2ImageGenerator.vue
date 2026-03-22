@@ -33,7 +33,7 @@
         </el-form-item>
         <!-- 操作按钮 -->
         <el-form-item>
-          <el-button type="primary" @click="generateImages">生成图片</el-button>
+          <el-button type="primary" @click="generateImages" :loading="loading">生成图片</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -59,6 +59,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { ElMessage } from 'element-plus'
 
 // 表单数据
 const form = ref({
@@ -69,6 +70,7 @@ const form = ref({
 
 // 生成状态
 const imagesGenerated = ref(false) // 标记图片是否已生成
+const loading = ref(false) // 加载状态
 
 // 生成的图片URL列表
 const generatedImages = ref([])
@@ -78,6 +80,12 @@ const generatedImages = ref([])
  * 调用后端API根据故事脚本生成分镜图片
  */
 const generateImages = async () => {
+  if (!form.value.storyScript.trim()) {
+    ElMessage.warning('请输入故事脚本')
+    return
+  }
+
+  loading.value = true
   try {
     const response = await fetch('/api/image/generate', {
       method: 'POST',
@@ -85,16 +93,26 @@ const generateImages = async () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        storyScript: form.storyScript,
-        shotCount: form.shotCount,
-        style: form.style
+        storyScript: form.value.storyScript,
+        shotCount: form.value.shotCount,
+        style: form.value.style
       })
     })
-    const data = await response.json()
-    generatedImages.value = data
-    imagesGenerated.value = true
+
+    const res = await response.json()
+
+    if (res.code === 2001) {
+      generatedImages.value = res.data || []
+      imagesGenerated.value = true
+      ElMessage.success('图片生成成功')
+    } else {
+      ElMessage.error(res.msg || '生成图片失败')
+    }
   } catch (error) {
     console.error('生成图片失败:', error)
+    ElMessage.error('生成图片失败: ' + error.message)
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -107,19 +125,17 @@ const generateImages = async () => {
 }
 
 .card {
-  margin-bottom: 20px;
+  width: 100%;
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  font-weight: bold;
+  font-size: 16px;
 }
 
 .shot-count {
-  margin-left: 10px;
-  font-size: 14px;
-  color: #606266;
+  margin-left: 15px;
+  font-weight: bold;
 }
 
 .result-container {
@@ -129,16 +145,20 @@ const generateImages = async () => {
 .image-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
+  gap: 20px;
+  padding: 20px;
 }
 
 .image-item {
-  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .image-caption {
-  margin-top: 10px;
+  padding: 10px;
+  text-align: center;
+  background-color: #f5f5f5;
   font-size: 14px;
-  color: #606266;
 }
 </style>

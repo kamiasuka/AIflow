@@ -41,7 +41,7 @@
         </el-form-item>
         <!-- 操作按钮 -->
         <el-form-item>
-          <el-button type="primary" @click="generateVideo">生成视频</el-button>
+          <el-button type="primary" @click="generateVideo" :loading="loading">生成视频</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -56,11 +56,11 @@
         </template>
         <div class="video-player">
           <video controls width="100%" height="auto">
-            <source src="https://example.com/sample-video.mp4" type="video/mp4">
+            <source :src="videoUrl" type="video/mp4">
             您的浏览器不支持视频播放。
           </video>
         </div>
-        <el-button type="primary" style="margin-top: 20px">下载视频</el-button>
+        <el-button type="primary" style="margin-top: 20px" @click="downloadVideo">下载视频</el-button>
       </el-card>
     </div>
   </div>
@@ -69,6 +69,7 @@
 <script setup>
 import { ref } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 // 表单数据
 const form = ref({
@@ -81,6 +82,8 @@ const fileList = ref([])
 
 // 生成状态
 const videoGenerated = ref(false) // 标记视频是否已生成
+const loading = ref(false) // 加载状态
+const videoUrl = ref('') // 生成的视频URL
 
 /**
  * 处理图片上传
@@ -96,6 +99,16 @@ const handleImageChange = (file, newFileList) => {
  * 调用后端API将分镜图片和剧本转换为视频
  */
 const generateVideo = async () => {
+  if (!form.value.script.trim()) {
+    ElMessage.warning('请输入剧本信息')
+    return
+  }
+  if (fileList.value.length === 0) {
+    ElMessage.warning('请上传分镜图片')
+    return
+  }
+
+  loading.value = true
   try {
     const response = await fetch('/api/video/generate', {
       method: 'POST',
@@ -103,14 +116,37 @@ const generateVideo = async () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        script: form.script,
-        videoLength: form.videoLength
+        script: form.value.script,
+        videoLength: form.value.videoLength
       })
     })
-    const data = await response.json()
-    videoGenerated.value = true
+
+    const res = await response.json()
+
+    if (res.code === 2001) {
+      videoUrl.value = res.data
+      videoGenerated.value = true
+      ElMessage.success('视频生成成功')
+    } else {
+      ElMessage.error(res.msg || '生成视频失败')
+    }
   } catch (error) {
     console.error('生成视频失败:', error)
+    ElMessage.error('生成视频失败: ' + error.message)
+  } finally {
+    loading.value = false
+  }
+}
+
+/**
+ * 下载视频
+ */
+const downloadVideo = () => {
+  if (videoUrl.value) {
+    const a = document.createElement('a')
+    a.href = videoUrl.value
+    a.download = 'generated_video.mp4'
+    a.click()
   }
 }
 </script>
@@ -123,19 +159,17 @@ const generateVideo = async () => {
 }
 
 .card {
-  margin-bottom: 20px;
+  width: 100%;
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  font-weight: bold;
+  font-size: 16px;
 }
 
 .video-length {
-  margin-left: 10px;
-  font-size: 14px;
-  color: #606266;
+  margin-left: 15px;
+  font-weight: bold;
 }
 
 .result-container {
@@ -143,9 +177,6 @@ const generateVideo = async () => {
 }
 
 .video-player {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 20px 0;
+  margin-top: 10px;
 }
 </style>
