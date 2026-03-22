@@ -1,11 +1,13 @@
 package com.aiflow.backend.dao;
 
 import com.aiflow.backend.model.Video;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 视频DAO接口
  * 用于视频相关的数据库操作
  */
+@Mapper
 public interface VideoDao {
     /**
      * 保存视频

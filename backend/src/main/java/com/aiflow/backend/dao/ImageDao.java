@@ -1,6 +1,7 @@
 package com.aiflow.backend.dao;
 
 import com.aiflow.backend.model.Image;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
@@ -8,6 +9,7 @@ import java.util.List;
  * 图片DAO接口
  * 用于图片相关的数据库操作
  */
+@Mapper
 public interface ImageDao {
     /**
      * 保存图片

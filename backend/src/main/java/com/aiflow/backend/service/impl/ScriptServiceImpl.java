@@ -1,12 +1,13 @@
 package com.aiflow.backend.service.impl;
 
+import com.aiflow.backend.common.exception.ServiceException;
+import com.aiflow.backend.common.response.StatusCode;
 import com.aiflow.backend.dao.ScriptDao;
 import com.aiflow.backend.model.Script;
 import com.aiflow.backend.service.ScriptService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -15,42 +16,57 @@ public class ScriptServiceImpl implements ScriptService {
     @Autowired
     private ScriptDao scriptDao;
     @Autowired
-    private  CommonService commonService;
+    private CommonService commonService;
 
     @Override
     public Map<String, Object> generateScript(String storyInfo, String premise, String apiType) {
-        // 根据API类型选择不同的AI服务
+        if (storyInfo == null || storyInfo.trim().isEmpty()) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "故事信息不能为空");
+        }
+        if (premise == null || premise.trim().isEmpty()) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "前提条件不能为空");
+        }
+        if (apiType == null || apiType.trim().isEmpty()) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "API类型不能为空");
+        }
+
+        String normalizedApiType = apiType.trim().toLowerCase();
         try {
-            if ("doubao".equals(apiType)) {
-                // 调用豆包API
+            if ("doubao".equals(normalizedApiType)) {
                 return commonService.callDoubaoAPI(storyInfo, premise);
-            } else if ("deepseek".equals(apiType)) {
-                // 调用DeepSeek API
+            } else if ("deepseek".equals(normalizedApiType)) {
                 return commonService.callDeepSeekAPI(storyInfo, premise);
             } else {
-                // 默认使用豆包API
-                return commonService.callDoubaoAPI(storyInfo, premise);
+                throw new ServiceException(StatusCode.VALIDATED_ERROR, "不支持的API类型: " + apiType.trim());
             }
+        } catch (ServiceException e) {
+            throw e;
         } catch (Exception e) {
-            // 处理异常，返回错误信息
-            Map<String, Object> result = new HashMap<>();
-            result.put("error", "生成剧本时发生错误: " + e.getMessage());
-            throw new RuntimeException("生成剧本失败", e);
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "生成剧本失败: " + e.getMessage());
         }
     }
-    
-
 
     @Override
     public Script saveScript(Script script) {
-        // 使用DAO保存剧本到数据库
-        scriptDao.save(script);
+        if (script == null) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "剧本对象不能为空");
+        }
+        int rows = scriptDao.save(script);
+        if (rows <= 0) {
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "保存剧本失败");
+        }
         return script;
     }
 
     @Override
     public Script getScriptById(Long id) {
-        // 使用DAO从数据库查询剧本
-        return scriptDao.getById(id);
+        if (id == null) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "剧本ID不能为空");
+        }
+        Script script = scriptDao.getById(id);
+        if (script == null) {
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "剧本不存在");
+        }
+        return script;
     }
 }

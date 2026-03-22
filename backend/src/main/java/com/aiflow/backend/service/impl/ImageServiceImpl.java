@@ -1,5 +1,7 @@
 package com.aiflow.backend.service.impl;
 
+import com.aiflow.backend.common.exception.ServiceException;
+import com.aiflow.backend.common.response.StatusCode;
 import com.aiflow.backend.dao.ImageDao;
 import com.aiflow.backend.model.Image;
 import com.aiflow.backend.service.ImageService;
@@ -17,30 +19,62 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public List<String> generateImages(String storyScript, int shotCount, String style) {
-        // 模拟API调用，返回模拟数据
-        List<String> imageUrls = new ArrayList<>();
-        for (int i = 0; i < shotCount; i++) {
-            imageUrls.add("https://example.com/image" + (i + 1) + ".jpg");
+        if (storyScript == null || storyScript.trim().isEmpty()) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "故事脚本不能为空");
         }
-        return imageUrls;
+        if (shotCount <= 0 || shotCount > 20) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "分镜数量必须在1-20之间");
+        }
+        if (style == null || style.trim().isEmpty()) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "图片风格不能为空");
+        }
+
+        try {
+            List<String> imageUrls = new ArrayList<>();
+            for (int i = 0; i < shotCount; i++) {
+                imageUrls.add("https://example.com/image" + (i + 1) + ".jpg");
+            }
+            return imageUrls;
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "生成图片失败: " + e.getMessage());
+        }
     }
 
     @Override
     public Image saveImage(Image image) {
-        // 使用DAO保存图片
-        imageDao.save(image);
+        if (image == null) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "图片对象不能为空");
+        }
+        int rows = imageDao.save(image);
+        if (rows <= 0) {
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "保存图片失败");
+        }
         return image;
     }
 
     @Override
     public Image getImageById(Long id) {
-        // 使用DAO获取图片
-        return imageDao.getById(id);
+        if (id == null) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "图片ID不能为空");
+        }
+        Image image = imageDao.getById(id);
+        if (image == null) {
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "图片不存在");
+        }
+        return image;
     }
 
     @Override
     public List<Image> getImagesByScriptId(Long scriptId) {
-        // 使用DAO获取图片列表
-        return imageDao.getByScriptId(scriptId);
+        if (scriptId == null) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "剧本ID不能为空");
+        }
+        List<Image> images = imageDao.getByScriptId(scriptId);
+        if (images == null) {
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "查询图片失败");
+        }
+        return images;
     }
 }

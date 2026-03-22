@@ -1,5 +1,7 @@
 package com.aiflow.backend.service.impl;
 
+import com.aiflow.backend.common.exception.ServiceException;
+import com.aiflow.backend.common.response.StatusCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -21,7 +23,7 @@ public class CommonService {
     private static final String DOUBAO_MODEL = "ep-20240310155935-fh465";
     
     private static final String DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
-    private static final String DEEPSEEK_API_KEY = "";
+    private static final String DEEPSEEK_API_KEY = "sk-6143ba08467e4f1e82ecfdf133477e92";
     private static final String DEEPSEEK_MODEL = "deepseek-chat";
     
     @Autowired
@@ -34,7 +36,7 @@ public class CommonService {
      * @return 生成的剧本信息
      * @throws Exception 当API调用失败时抛出异常
      */
-    public Map<String, Object> callDoubaoAPI(String storyInfo, String premise) throws Exception {
+    public Map<String, Object> callDoubaoAPI(String storyInfo, String premise) {
         return callAIAPI(storyInfo, premise, "doubao");
     }
     
@@ -45,7 +47,8 @@ public class CommonService {
      * @return 生成的剧本信息
      * @throws Exception 当API调用失败时抛出异常
      */
-    public Map<String, Object> callDeepSeekAPI(String storyInfo, String premise) throws Exception {
+    public Map<String, Object> callDeepSeekAPI(String storyInfo, String premise) {
+
         return callAIAPI(storyInfo, premise, "deepseek");
     }
     
@@ -57,7 +60,7 @@ public class CommonService {
      * @return 生成的剧本信息
      * @throws Exception 当API调用失败时抛出异常
      */
-    private Map<String, Object> callAIAPI(String storyInfo, String premise, String apiType) throws Exception {
+    private Map<String, Object> callAIAPI(String storyInfo, String premise, String apiType) {
         Map<String, Object> result = new HashMap<>();
         
         // 根据API类型获取配置
@@ -71,7 +74,7 @@ public class CommonService {
             apiKey = DEEPSEEK_API_KEY;
             model = DEEPSEEK_MODEL;
         } else {
-            throw new IllegalArgumentException("不支持的API类型: " + apiType);
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "不支持的API类型: " + apiType);
         }
         
         // 构建提示词
@@ -119,27 +122,33 @@ public class CommonService {
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
         
         // 发送请求
-        Map<String, Object> response = restTemplate.exchange(
-                apiUrl,
-                HttpMethod.POST,
-                requestEntity,
-                Map.class
-        ).getBody();
-        
+        Map<String, Object> response;
+        try {
+            response = restTemplate.exchange(
+                    apiUrl,
+                    HttpMethod.POST,
+                    requestEntity,
+                    Map.class
+            ).getBody();
+        } catch (Exception ex) {
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "调用AI接口失败: " + ex.getMessage());
+        }
+
+
         // 解析响应
         if (response == null || !response.containsKey("choices")) {
-            throw new IllegalArgumentException("API响应格式错误");
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "AI接口响应格式错误");
         }
         
         ArrayList<Map<String, Object>> choices = (ArrayList<Map<String, Object>>) response.get("choices");
         if (choices.isEmpty()) {
-            throw new IllegalArgumentException("API响应中没有choices数据");
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "AI接口响应中没有choices数据");
         }
         
         Map<String, Object> choice = choices.get(0);
         Map<String, Object> messageObj = (Map<String, Object>) choice.get("message");
         if (messageObj == null || !messageObj.containsKey("content")) {
-            throw new IllegalArgumentException("API响应中没有content数据");
+            throw new ServiceException(StatusCode.OPERATION_FAILED, "AI接口响应中没有content数据");
         }
         
         String content = (String) messageObj.get("content");

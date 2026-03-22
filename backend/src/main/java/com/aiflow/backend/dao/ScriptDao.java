@@ -1,11 +1,13 @@
 package com.aiflow.backend.dao;
 
 import com.aiflow.backend.model.Script;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 剧本DAO接口
  * 用于剧本相关的数据库操作
  */
+@Mapper
 public interface ScriptDao {
     /**
      * 保存剧本
