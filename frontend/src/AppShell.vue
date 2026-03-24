@@ -1,47 +1,45 @@
-<template>
+﻿<template>
   <div class="app-container">
     <el-header height="60px" class="header">
-      <h1>AIflow - AI自动化工作流</h1>
+      <h1>AIflow - AI Workflow Studio</h1>
     </el-header>
+
     <el-main class="main">
-      <!-- 功能模块切换 -->
       <el-tabs v-model="activeTab">
-        <el-tab-pane label="生成剧本" name="script">
-          <script-generator />
+        <el-tab-pane label="Script" name="script">
+          <script-generator-panel />
         </el-tab-pane>
-        <el-tab-pane label="文生图" name="text2image">
-          <text2image-generator />
+        <el-tab-pane label="Text to Image" name="text2image">
+          <text2-image-panel />
         </el-tab-pane>
-        <el-tab-pane label="图生视频" name="image2video">
-          <image2video-generator />
+        <el-tab-pane label="Image to Video" name="image2video">
+          <image2-video-panel />
         </el-tab-pane>
-        <el-tab-pane label="素材整理" name="material">
-          <material-organizer />
+        <el-tab-pane label="Materials" name="material">
+          <material-organizer-panel />
         </el-tab-pane>
       </el-tabs>
     </el-main>
+
     <el-footer height="40px" class="footer">
-      <p>© 2026 AIflow. All rights reserved.</p>
+      <p>(c) 2026 AIflow. All rights reserved.</p>
     </el-footer>
 
-    <!-- 模型配置弹窗 -->
-    <!-- 模型配置弹窗 -->
-    <model-config-dialog @config-updated="handleConfigUpdated" />
+    <model-config-dialog-panel @config-updated="handleConfigUpdated" />
   </div>
 </template>
 
 <script setup>
 import { provide, ref } from 'vue'
-import ScriptGenerator from './components/ScriptGenerator.vue'
-import Text2ImageGenerator from './components/Text2ImageGenerator.vue'
-import Image2VideoGenerator from './components/Image2VideoGenerator.vue'
-import MaterialOrganizer from './components/MaterialOrganizer.vue'
-import ModelConfigDialog from './components/ModelConfigDialog.vue'
+import Image2VideoPanel from './components/Image2VideoPanel.vue'
+import MaterialOrganizerPanel from './components/MaterialOrganizerPanel.vue'
+import ModelConfigDialogPanel from './components/ModelConfigDialogPanel.vue'
+import ScriptGeneratorPanel from './components/ScriptGeneratorPanel.vue'
+import Text2ImagePanel from './components/Text2ImagePanel.vue'
 
 const activeTab = ref('script')
 const modelConfigKey = ref(0)
 
-// 配置变更后通知剧本模块刷新
 const handleConfigUpdated = () => {
   modelConfigKey.value += 1
 }

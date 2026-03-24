@@ -1,8 +1,8 @@
 <template>
   <div class="model-config-container">
-    <el-button class="settings-button" type="primary" circle :loading="dialogLoading" @click="openDialog">
+    <div class="settings-button" @click="dialogVisible = true">
       <el-icon><Setting /></el-icon>
-    </el-button>
+    </div>
 
     <el-dialog
       v-model="dialogVisible"
@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { Setting } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -114,7 +114,6 @@ import {
 const emit = defineEmits(['config-updated'])
 
 const dialogVisible = ref(false)
-const dialogLoading = ref(false)
 const formDialogVisible = ref(false)
 const isEdit = ref(false)
 const searchKeyword = ref('')
@@ -153,26 +152,15 @@ const filteredConfigs = computed(() => {
   )
 })
 
-// 打开弹窗前先刷新配置列表
 const loadConfigs = async () => {
-  configs.value = await fetchAllModelConfigs()
-}
-
-// 点击设置按钮时先刷新数据，再展示弹窗
-const openDialog = async () => {
-  dialogLoading.value = true
   try {
-    await loadConfigs()
+    configs.value = await fetchAllModelConfigs()
   } catch (error) {
     console.error('Failed to load configs:', error)
     ElMessage.error(error.message || '加载配置失败')
-  } finally {
-    dialogLoading.value = false
-    dialogVisible.value = true
   }
 }
 
-// 新增配置
 const handleAdd = () => {
   isEdit.value = false
   form.value = createEmptyForm()
@@ -180,7 +168,6 @@ const handleAdd = () => {
   formDialogVisible.value = true
 }
 
-// 编辑配置
 const handleEdit = (row) => {
   isEdit.value = true
   form.value = { ...row }
@@ -188,7 +175,6 @@ const handleEdit = (row) => {
   formDialogVisible.value = true
 }
 
-// 设为默认模型
 const handleSetDefault = async (row) => {
   try {
     await setDefaultModelConfig(row.id)
@@ -201,7 +187,6 @@ const handleSetDefault = async (row) => {
   }
 }
 
-// 删除配置
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除这条模型配置吗？', '提示', {
@@ -222,7 +207,6 @@ const handleDelete = async (row) => {
   }
 }
 
-// 提交表单
 const handleSubmit = async () => {
   try {
     await formRef.value.validate()
@@ -247,6 +231,16 @@ const handleSubmit = async () => {
     submitLoading.value = false
   }
 }
+
+watch(dialogVisible, (visible) => {
+  if (visible) {
+    loadConfigs()
+  }
+})
+
+onMounted(() => {
+  loadConfigs()
+})
 </script>
 
 <style scoped>
@@ -256,7 +250,15 @@ const handleSubmit = async () => {
   right: 30px;
   width: 50px;
   height: 50px;
+  background-color: #409eff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   box-shadow: 0 2px 12px rgba(64, 158, 255, 0.4);
+  transition: all 0.3s;
 }
 
 .settings-button:hover {

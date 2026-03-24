@@ -2,62 +2,18 @@ package com.aiflow.backend.model;
 
 import java.util.Date;
 
-/**
- * 剧本模型类
- * 用于存储剧本相关信息
- */
 public class Script {
-    /**
-     * 剧本ID
-     */
     private Long id;
-    
-    /**
-     * 故事信息
-     */
     private String storyInfo;
-    
-    /**
-     * 前提条件
-     */
     private String premise;
-    
-    /**
-     * API类型（doubao或deepseek）
-     */
-    private String apiType;
-    
-    /**
-     * 故事剧本
-     */
+    private Long modelConfigId;
     private String storyScript;
-    
-    /**
-     * 人物设计
-     */
     private String characterDesign;
-    
-    /**
-     * 分镜脚本
-     */
     private String shotScript;
-    
-    /**
-     * Prompt提示词
-     */
     private String prompt;
-    
-    /**
-     * 创建时间
-     */
     private Date createTime;
-    
-    /**
-     * 更新时间
-     */
     private Date updateTime;
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -82,12 +38,12 @@ public class Script {
         this.premise = premise;
     }
 
-    public String getApiType() {
-        return apiType;
+    public Long getModelConfigId() {
+        return modelConfigId;
     }
 
-    public void setApiType(String apiType) {
-        this.apiType = apiType;
+    public void setModelConfigId(Long modelConfigId) {
+        this.modelConfigId = modelConfigId;
     }
 
     public String getStoryScript() {

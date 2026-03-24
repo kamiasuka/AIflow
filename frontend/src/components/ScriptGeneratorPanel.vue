@@ -147,7 +147,6 @@ const result = ref({
 /**
  * 加载启用的模型配置，并默认选中数据库中的默认项。
  */
-// 加载可用模型，并优先选中数据库默认项
 const loadEnabledConfigs = async () => {
   try {
     enabledConfigs.value = await fetchEnabledModelConfigs()
@@ -169,7 +168,6 @@ const loadEnabledConfigs = async () => {
 /**
  * 生成剧本
  */
-// 生成剧本
 const handleGenerate = async () => {
   if (!form.value.storyInfo.trim()) {
     ElMessage.warning('请输入故事信息')
@@ -211,7 +209,6 @@ const handleGenerate = async () => {
 /**
  * 导出剧本
  */
-// 导出当前生成结果
 const exportScript = () => {
   const content = `
 === 故事剧本 ===

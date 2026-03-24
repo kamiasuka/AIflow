@@ -6,6 +6,7 @@
           <span>素材整理</span>
         </div>
       </template>
+
       <el-tabs v-model="activeTab">
         <el-tab-pane label="批量重命名" name="rename">
           <el-form :model="renameForm" label-width="100px">
@@ -14,7 +15,7 @@
                 <el-option label="视频文件" value="video" />
                 <el-option label="音频文件" value="audio" />
                 <el-option label="图片文件" value="image" />
-                <el-option label="所有文件" value="all" />
+                <el-option label="全部文件" value="all" />
               </el-select>
             </el-form-item>
             <el-form-item label="命名模式">
@@ -48,7 +49,7 @@
       </el-tabs>
     </el-card>
 
-    <div class="result-container" v-if="operationResult">
+    <div v-if="operationResult" class="result-container">
       <el-card class="card">
         <template #header>
           <div class="card-header">
@@ -86,29 +87,29 @@ const operationResult = ref(null)
 
 const batchRename = async () => {
   // 模拟批量重命名操作
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
   operationResult.value = {
     title: '批量重命名成功',
-    message: `已按照模式 "${renameForm.value.pattern}" 重命名文件`,
+    message: `已按模式 "${renameForm.value.pattern}" 重命名素材文件。`,
     type: 'success'
   }
 }
 
 const categorizeFiles = async () => {
   // 模拟分类整理操作
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
   operationResult.value = {
     title: '分类整理成功',
-    message: `已按照 ${getCategorizeLabel(categorizeForm.value.categorizeBy)} 分类文件`,
+    message: `已按 ${getCategorizeLabel(categorizeForm.value.categorizeBy)} 完成文件分类。`,
     type: 'success'
   }
 }
 
 const getCategorizeLabel = (value) => {
   const labels = {
-    'type': '文件类型',
-    'date': '创建日期',
-    'tag': '自定义标签'
+    type: '文件类型',
+    date: '创建日期',
+    tag: '自定义标签'
   }
   return labels[value] || value
 }
