@@ -1,5 +1,7 @@
 package com.aiflow.backend.service;
 
+import com.aiflow.backend.dto.video.VideoWorkflowRequest;
+import com.aiflow.backend.dto.video.VideoWorkflowResponse;
 import com.aiflow.backend.model.Video;
 
 /**
@@ -35,4 +37,6 @@ public interface VideoService {
      * @return 视频对象
      */
     Video getVideoByScriptId(Long scriptId);
+
+    VideoWorkflowResponse generateVideoWorkflow(VideoWorkflowRequest request);
 }

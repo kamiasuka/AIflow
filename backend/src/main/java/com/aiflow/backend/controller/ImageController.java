@@ -3,6 +3,7 @@ package com.aiflow.backend.controller;
 import com.aiflow.backend.common.exception.ServiceException;
 import com.aiflow.backend.common.response.JsonResult;
 import com.aiflow.backend.common.response.StatusCode;
+import com.aiflow.backend.dto.image.ImageWorkflowRequest;
 import com.aiflow.backend.model.Image;
 import com.aiflow.backend.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,11 @@ public class ImageController {
 
         List<String> imageUrls = imageService.generateImages(storyScript, shotCount, style);
         return JsonResult.ok(imageUrls);
+    }
+
+    @PostMapping("/workflow/generate")
+    public JsonResult generateImageWorkflow(@RequestBody ImageWorkflowRequest request) {
+        return JsonResult.ok(imageService.generateImageWorkflow(request));
     }
 
     /**

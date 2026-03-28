@@ -3,6 +3,7 @@ package com.aiflow.backend.controller;
 import com.aiflow.backend.common.exception.ServiceException;
 import com.aiflow.backend.common.response.JsonResult;
 import com.aiflow.backend.common.response.StatusCode;
+import com.aiflow.backend.dto.video.VideoWorkflowRequest;
 import com.aiflow.backend.model.Video;
 import com.aiflow.backend.service.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,11 @@ public class VideoController {
 
         String videoUrl = videoService.generateVideo(script, videoLength);
         return JsonResult.ok(videoUrl);
+    }
+
+    @PostMapping("/workflow/generate")
+    public JsonResult generateVideoWorkflow(@RequestBody VideoWorkflowRequest request) {
+        return JsonResult.ok(videoService.generateVideoWorkflow(request));
     }
 
     /**

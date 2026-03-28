@@ -1,5 +1,7 @@
 package com.aiflow.backend.service;
 
+import com.aiflow.backend.dto.image.ImageWorkflowRequest;
+import com.aiflow.backend.dto.image.ImageWorkflowResponse;
 import com.aiflow.backend.model.Image;
 
 import java.util.List;
@@ -38,4 +40,6 @@ public interface ImageService {
      * @return 图片列表
      */
     List<Image> getImagesByScriptId(Long scriptId);
+
+    ImageWorkflowResponse generateImageWorkflow(ImageWorkflowRequest request);
 }

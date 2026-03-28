@@ -3,8 +3,17 @@ package com.aiflow.backend.service.impl;
 import com.aiflow.backend.common.exception.ServiceException;
 import com.aiflow.backend.common.response.StatusCode;
 import com.aiflow.backend.dao.ImageDao;
+import com.aiflow.backend.dto.image.ImageWorkflowItem;
+import com.aiflow.backend.dto.image.ImageWorkflowRequest;
+import com.aiflow.backend.dto.image.ImageWorkflowResponse;
+import com.aiflow.backend.model.GenerationTask;
 import com.aiflow.backend.model.Image;
+import com.aiflow.backend.model.Project;
+import com.aiflow.backend.model.Shot;
 import com.aiflow.backend.service.ImageService;
+import com.aiflow.backend.service.GenerationTaskService;
+import com.aiflow.backend.service.ProjectService;
+import com.aiflow.backend.service.ShotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +25,15 @@ public class ImageServiceImpl implements ImageService {
 
     @Autowired
     private ImageDao imageDao;
+
+    @Autowired
+    private ProjectService projectService;
+
+    @Autowired
+    private ShotService shotService;
+
+    @Autowired
+    private GenerationTaskService generationTaskService;
 
     @Override
     public List<String> generateImages(String storyScript, int shotCount, String style) {
@@ -76,5 +94,91 @@ public class ImageServiceImpl implements ImageService {
             throw new ServiceException(StatusCode.OPERATION_FAILED, "查询图片失败");
         }
         return images;
+    }
+
+    @Override
+    public ImageWorkflowResponse generateImageWorkflow(ImageWorkflowRequest request) {
+        if (request == null) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "请求不能为空");
+        }
+        if (request.getShotCount() == null || request.getShotCount() <= 0 || request.getShotCount() > 20) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "镜头数量必须在 1 到 20 之间");
+        }
+        if (request.getStoryScript() == null || request.getStoryScript().trim().isEmpty()) {
+            throw new ServiceException(StatusCode.VALIDATED_ERROR, "故事脚本不能为空");
+        }
+
+        Project project = ensureProject(request);
+        List<Shot> shotList = shotService.buildShots(
+                project.getId(),
+                request.getScriptId(),
+                request.getStoryScript(),
+                request.getShotScript(),
+                request.getShotCount(),
+                request.getStyle()
+        );
+
+        List<ImageWorkflowItem> items = new ArrayList<>();
+        for (Shot shot : shotList) {
+            String imageUrl = buildMockImageUrl(project.getId(), shot.getShotNo());
+
+            GenerationTask task = new GenerationTask();
+            task.setProjectId(project.getId());
+            task.setShotId(shot.getId());
+            task.setTaskType("image");
+            task.setProvider("mock");
+            task.setModelName("storyboard-image");
+            task.setPromptText(shot.getPromptText());
+            task.setStatus("success");
+            task.setResultUrl(imageUrl);
+            task = generationTaskService.createTask(task);
+
+            if (request.getScriptId() != null) {
+                Image image = new Image();
+                image.setScriptId(request.getScriptId());
+                image.setImageUrl(imageUrl);
+                image.setShotIndex(shot.getShotNo());
+                image.setStyle(shot.getStyleDesc());
+                imageDao.save(image);
+            }
+
+            ImageWorkflowItem item = new ImageWorkflowItem();
+            item.setShot(shot);
+            item.setTaskId(task.getId());
+            item.setTaskStatus(task.getStatus());
+            item.setImageUrl(imageUrl);
+            items.add(item);
+        }
+
+        ImageWorkflowResponse response = new ImageWorkflowResponse();
+        response.setProject(project);
+        response.setItems(items);
+        return response;
+    }
+
+    private Project ensureProject(ImageWorkflowRequest request) {
+        if (request.getProjectId() != null) {
+            return projectService.getProjectById(request.getProjectId());
+        }
+
+        Project project = new Project();
+        project.setName(resolveProjectName(request));
+        project.setSourceType("manual");
+        project.setSourceTitle(request.getSourceTitle());
+        project.setSummary(request.getStoryScript());
+        project.setGenreTags(request.getGenreTags());
+        project.setStatus("draft");
+        return projectService.createProject(project);
+    }
+
+    private String resolveProjectName(ImageWorkflowRequest request) {
+        if (request.getProjectName() != null && !request.getProjectName().trim().isEmpty()) {
+            return request.getProjectName().trim();
+        }
+        return "故事项目-" + System.currentTimeMillis();
+    }
+
+    private String buildMockImageUrl(Long projectId, Integer shotNo) {
+        return "https://example.com/project-" + projectId + "/shot-" + shotNo + ".jpg";
     }
 }
