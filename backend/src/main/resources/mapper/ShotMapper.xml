@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiflow.backend.dao.ShotDao">
+    <resultMap id="shotResultMap" type="com.aiflow.backend.model.Shot">
+        <id property="id" column="id" />
+        <result property="projectId" column="project_id" />
+        <result property="scriptId" column="script_id" />
+        <result property="shotNo" column="shot_no" />
+        <result property="sceneTitle" column="scene_title" />
+        <result property="subject" column="subject" />
+        <result property="actionDesc" column="action_desc" />
+        <result property="envDesc" column="env_desc" />
+        <result property="cameraDesc" column="camera_desc" />
+        <result property="styleDesc" column="style_desc" />
+        <result property="durationSec" column="duration_sec" />
+        <result property="promptText" column="prompt_text" />
+        <result property="negativePrompt" column="negative_prompt" />
+        <result property="imageStatus" column="image_status" />
+        <result property="videoStatus" column="video_status" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <insert id="insert" parameterType="com.aiflow.backend.model.Shot" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO shot (
+            project_id,
+            script_id,
+            shot_no,
+            scene_title,
+            subject,
+            action_desc,
+            env_desc,
+            camera_desc,
+            style_desc,
+            duration_sec,
+            prompt_text,
+            negative_prompt,
+            image_status,
+            video_status,
+            create_time,
+            update_time
+        ) VALUES (
+            #{projectId},
+            #{scriptId},
+            #{shotNo},
+            #{sceneTitle},
+            #{subject},
+            #{actionDesc},
+            #{envDesc},
+            #{cameraDesc},
+            #{styleDesc},
+            #{durationSec},
+            #{promptText},
+            #{negativePrompt},
+            #{imageStatus},
+            #{videoStatus},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO shot (
+            project_id,
+            script_id,
+            shot_no,
+            scene_title,
+            subject,
+            action_desc,
+            env_desc,
+            camera_desc,
+            style_desc,
+            duration_sec,
+            prompt_text,
+            negative_prompt,
+            image_status,
+            video_status,
+            create_time,
+            update_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.projectId},
+                #{item.scriptId},
+                #{item.shotNo},
+                #{item.sceneTitle},
+                #{item.subject},
+                #{item.actionDesc},
+                #{item.envDesc},
+                #{item.cameraDesc},
+                #{item.styleDesc},
+                #{item.durationSec},
+                #{item.promptText},
+                #{item.negativePrompt},
+                #{item.imageStatus},
+                #{item.videoStatus},
+                NOW(),
+                NOW()
+            )
+        </foreach>
+    </insert>
+
+    <select id="getById" parameterType="java.lang.Long" resultMap="shotResultMap">
+        SELECT * FROM shot WHERE id = #{id}
+    </select>
+
+    <select id="findByProjectId" parameterType="java.lang.Long" resultMap="shotResultMap">
+        SELECT * FROM shot WHERE project_id = #{projectId} ORDER BY shot_no ASC, id ASC
+    </select>
+
+    <delete id="deleteByProjectId" parameterType="java.lang.Long">
+        DELETE FROM shot WHERE project_id = #{projectId}
+    </delete>
+
+    <update id="update" parameterType="com.aiflow.backend.model.Shot">
+        UPDATE shot SET
+            scene_title = #{sceneTitle},
+            subject = #{subject},
+            action_desc = #{actionDesc},
+            env_desc = #{envDesc},
+            camera_desc = #{cameraDesc},
+            style_desc = #{styleDesc},
+            duration_sec = #{durationSec},
+            prompt_text = #{promptText},
+            negative_prompt = #{negativePrompt},
+            image_status = #{imageStatus},
+            video_status = #{videoStatus},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+</mapper>
